@@ -1,47 +1,36 @@
-# ClaudeCodeUI Enclii Configuration
+# ClaudeCodeUI - Enclii Service Specification
 # Web-based UI for Claude Code with Janua SSO integration
 
-name: claudecodeui
-project: madfam-automation
-
-# Build configuration
-runtime: dockerfile
-dockerfile: Dockerfile
-
-# Service port
-port: 3001
-
-# Public domains
-domains:
-  - agents.madfam.io
-
-# Environment variables
-env:
-  # Janua OAuth2 Configuration
-  - JANUA_URL=https://auth.madfam.io
-  - JANUA_CLIENT_ID=jnc_lSGMbQtCGdHSctd4mEQoaklLBCv7xXhe
-  - JANUA_REDIRECT_URI=https://agents.madfam.io/auth/callback
-
-  # Application Settings
-  - NODE_ENV=production
-  - CONTEXT_WINDOW=160000
-
-  # Auto-Claude Agent Integration
-  - AGENT_API_URL=https://agents-api.madfam.io
-  - KUBERNETES_NAMESPACE=madfam-automation
-  - IN_CLUSTER=false
-
-# Secrets (managed via Enclii secrets)
-secrets:
-  - JANUA_CLIENT_SECRET
-
-# Health check
-healthcheck:
-  path: /health
-  interval: 30s
-  timeout: 10s
-
-# Resource limits
-resources:
-  cpu: 500m
-  memory: 512Mi
+apiVersion: enclii.dev/v1alpha
+kind: Service
+metadata:
+  name: claudecodeui
+  project: madfam-automation
+spec:
+  build:
+    type: dockerfile
+    dockerfile: Dockerfile
+  runtime:
+    port: 3001
+    replicas: 1
+    healthCheck: /health
+  env:
+    # Janua OAuth2 Configuration
+    - name: JANUA_URL
+      value: "https://auth.madfam.io"
+    - name: JANUA_CLIENT_ID
+      value: "jnc_lSGMbQtCGdHSctd4mEQoaklLBCv7xXhe"
+    - name: JANUA_REDIRECT_URI
+      value: "https://agents.madfam.io/auth/callback"
+    # Application Settings
+    - name: NODE_ENV
+      value: "production"
+    - name: CONTEXT_WINDOW
+      value: "160000"
+    # Auto-Claude Agent Integration
+    - name: AGENT_API_URL
+      value: "https://agents-api.madfam.io"
+    - name: KUBERNETES_NAMESPACE
+      value: "madfam-automation"
+    - name: IN_CLUSTER
+      value: "false"
