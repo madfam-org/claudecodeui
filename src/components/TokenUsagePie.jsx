@@ -10,11 +10,11 @@ function TokenUsagePie({ used, total }) {
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percentage / 100) * circumference;
 
-  // Color based on usage level
+  // Color based on usage level - using Tailwind CSS variable colors
   const getColor = () => {
-    if (percentage < 50) return '#3b82f6'; // blue
-    if (percentage < 75) return '#f59e0b'; // orange
-    return '#ef4444'; // red
+    if (percentage < 50) return 'rgb(var(--color-blue-500, 59 130 246))'; // blue
+    if (percentage < 75) return 'rgb(var(--color-amber-500, 245 158 11))'; // amber/orange
+    return 'rgb(var(--color-red-500, 239 68 68))'; // red
   };
 
   return (
