@@ -126,18 +126,8 @@ export const AuthProvider = ({ children }) => {
         // Janua not configured, fall back to local auth
       }
 
-      // If Janua SSO is enabled and no token, redirect directly to Janua login
-      // This bypasses local account setup entirely
-      if (januaIsEnabled && !token) {
-        console.log('[AuthContext] Janua SSO enabled, redirecting to SSO login...');
-        setIsLoading(false);
-        // Small delay to ensure state updates before redirect
-        setTimeout(() => {
-          window.location.href = api.janua.loginUrl;
-        }, 100);
-        return;
-      }
-
+      // When Janua SSO is enabled, skip local auth setup check
+      // User will see LoginForm with "Sign in with Janua" button
       // Only check local auth status if Janua is not enabled
       if (!januaIsEnabled) {
         const statusResponse = await api.auth.status();
