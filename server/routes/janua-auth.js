@@ -79,6 +79,21 @@ router.get('/callback', async (req, res) => {
     // Get user information from Janua
     const userInfo = await januaClient.getUserInfo(access_token);
 
+    // Email whitelist validation - only allow authorized users
+    // Configure via JANUA_ALLOWED_EMAILS env var (comma-separated) or default to admin@madfam.io
+    const allowedEmails = (process.env.JANUA_ALLOWED_EMAILS || 'admin@madfam.io')
+      .split(',')
+      .map(email => email.trim().toLowerCase());
+
+    const userEmail = (userInfo.email || '').toLowerCase();
+
+    if (!allowedEmails.includes(userEmail)) {
+      console.warn(`[Janua Auth] Access denied for email: ${userEmail}. Allowed: ${allowedEmails.join(', ')}`);
+      return res.redirect(`/?error=${encodeURIComponent('Access denied. Your email is not authorized to use this application.')}`);
+    }
+
+    console.log(`[Janua Auth] Access granted for authorized user: ${userEmail}`);
+
     // Create or update user in local database
     let user = userDb.getUserByUsername(userInfo.sub); // Use Janua user ID as username
 

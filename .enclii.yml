@@ -19,7 +19,7 @@ spec:
     - name: JANUA_URL
       value: "https://auth.madfam.io"
     - name: JANUA_CLIENT_ID
-      value: "jnc_lSGMbQtCGdHSctd4mEQoaklLBCv7xXhe"
+      value: "jnc_2kEE7mGL6b8T2GbA1ilHD1KR5NqKeScp"
     - name: JANUA_REDIRECT_URI
       value: "https://agents.madfam.io/auth/callback"
     # Application Settings

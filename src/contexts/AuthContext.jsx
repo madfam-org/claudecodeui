@@ -112,26 +112,42 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
-      // Check if system needs setup
-      const statusResponse = await api.auth.status();
-      const statusData = await statusResponse.json();
-
-      if (statusData.needsSetup) {
-        setNeedsSetup(true);
-        setIsLoading(false);
-        return;
-      }
-
-      // Check if Janua OAuth is enabled
+      // Check if Janua OAuth is enabled FIRST (takes priority over local auth)
+      let januaIsEnabled = false;
       try {
         const januaStatusResponse = await api.janua.status();
         if (januaStatusResponse.ok) {
           const januaData = await januaStatusResponse.json();
-          setJanuaEnabled(januaData.enabled || false);
+          januaIsEnabled = januaData.oauth_enabled || false;
+          setJanuaEnabled(januaIsEnabled);
         }
       } catch (err) {
         console.error('[AuthContext] Janua status check failed:', err);
-        // Janua not configured, keep disabled
+        // Janua not configured, fall back to local auth
+      }
+
+      // If Janua SSO is enabled and no token, redirect directly to Janua login
+      // This bypasses local account setup entirely
+      if (januaIsEnabled && !token) {
+        console.log('[AuthContext] Janua SSO enabled, redirecting to SSO login...');
+        setIsLoading(false);
+        // Small delay to ensure state updates before redirect
+        setTimeout(() => {
+          window.location.href = api.janua.loginUrl;
+        }, 100);
+        return;
+      }
+
+      // Only check local auth status if Janua is not enabled
+      if (!januaIsEnabled) {
+        const statusResponse = await api.auth.status();
+        const statusData = await statusResponse.json();
+
+        if (statusData.needsSetup) {
+          setNeedsSetup(true);
+          setIsLoading(false);
+          return;
+        }
       }
 
       // If we have a token, verify it
