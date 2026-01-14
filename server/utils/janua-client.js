@@ -31,7 +31,7 @@ class JanuaClient {
       state: state
     });
 
-    return `${this.januaUrl}/oauth/authorize?${params.toString()}`;
+    return `${this.januaUrl}/api/v1/oauth/authorize?${params.toString()}`;
   }
 
   /**
@@ -40,7 +40,7 @@ class JanuaClient {
    * @returns {Promise<Object>} Token response with access_token, id_token, etc.
    */
   async exchangeCodeForToken(code) {
-    const response = await fetch(`${this.januaUrl}/oauth/token`, {
+    const response = await fetch(`${this.januaUrl}/api/v1/oauth/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -67,7 +67,7 @@ class JanuaClient {
    * @returns {Promise<Object>} User information
    */
   async getUserInfo(accessToken) {
-    const response = await fetch(`${this.januaUrl}/oauth/userinfo`, {
+    const response = await fetch(`${this.januaUrl}/api/v1/oauth/userinfo`, {
       headers: {
         'Authorization': `Bearer ${accessToken}`
       }
@@ -87,7 +87,7 @@ class JanuaClient {
    * @returns {Promise<void>}
    */
   async revokeToken(token) {
-    await fetch(`${this.januaUrl}/oauth/revoke`, {
+    await fetch(`${this.januaUrl}/api/v1/oauth/revoke`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
