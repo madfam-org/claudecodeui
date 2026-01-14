@@ -104,8 +104,9 @@ router.get('/callback', async (req, res) => {
         email: userInfo.email,
         name: userInfo.name,
         oauth_provider: 'janua',
-        janua_user_id: userInfo.sub
+        oauth_user_id: userInfo.sub
       });
+      console.log(`[Janua Auth] Created new user: ${userInfo.sub} (${userInfo.email})`);
     } else {
       // Update last login
       userDb.updateLastLogin(user.id);

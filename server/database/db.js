@@ -75,6 +75,27 @@ const runMigrations = () => {
       db.exec('ALTER TABLE users ADD COLUMN has_completed_onboarding BOOLEAN DEFAULT 0');
     }
 
+    // OAuth/SSO support columns
+    if (!columnNames.includes('oauth_provider')) {
+      console.log('Running migration: Adding oauth_provider column');
+      db.exec('ALTER TABLE users ADD COLUMN oauth_provider TEXT');
+    }
+
+    if (!columnNames.includes('oauth_user_id')) {
+      console.log('Running migration: Adding oauth_user_id column');
+      db.exec('ALTER TABLE users ADD COLUMN oauth_user_id TEXT');
+    }
+
+    if (!columnNames.includes('email')) {
+      console.log('Running migration: Adding email column');
+      db.exec('ALTER TABLE users ADD COLUMN email TEXT');
+    }
+
+    if (!columnNames.includes('display_name')) {
+      console.log('Running migration: Adding display_name column');
+      db.exec('ALTER TABLE users ADD COLUMN display_name TEXT');
+    }
+
     console.log('Database migrations completed successfully');
   } catch (error) {
     console.error('Error running migrations:', error.message);
@@ -107,12 +128,27 @@ const userDb = {
     }
   },
 
-  // Create a new user
-  createUser: (username, passwordHash) => {
+  // Create a new user (supports both local and OAuth users)
+  createUser: (username, passwordHash, options = {}) => {
     try {
-      const stmt = db.prepare('INSERT INTO users (username, password_hash) VALUES (?, ?)');
-      const result = stmt.run(username, passwordHash);
-      return { id: result.lastInsertRowid, username };
+      const { email, name, oauth_provider, oauth_user_id } = options;
+
+      // For OAuth users, use a placeholder hash (they can't login with password anyway)
+      const effectivePasswordHash = passwordHash || `oauth:${oauth_provider || 'none'}:${crypto.randomBytes(16).toString('hex')}`;
+
+      const stmt = db.prepare(`
+        INSERT INTO users (username, password_hash, email, display_name, oauth_provider, oauth_user_id)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `);
+      const result = stmt.run(
+        username,
+        effectivePasswordHash,
+        email || null,
+        name || null,
+        oauth_provider || null,
+        oauth_user_id || null
+      );
+      return { id: result.lastInsertRowid, username, email, oauth_provider };
     } catch (err) {
       throw err;
     }
