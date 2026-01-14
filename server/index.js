@@ -74,6 +74,7 @@ import projectsRoutes from './routes/projects.js';
 import cliAuthRoutes from './routes/cli-auth.js';
 import userRoutes from './routes/user.js';
 import codexRoutes from './routes/codex.js';
+import januaAuthRoutes from './routes/janua-auth.js';
 import { initializeDatabase } from './database/db.js';
 import { validateApiKey, authenticateToken, authenticateWebSocket } from './middleware/auth.js';
 
@@ -239,6 +240,16 @@ app.use('/api', validateApiKey);
 
 // Authentication routes (public)
 app.use('/api/auth', authRoutes);
+
+// Janua OAuth2 SSO routes (public)
+app.use('/api/janua-auth', januaAuthRoutes);
+
+// OAuth callback redirect for Janua SSO (redirect URI: /auth/callback)
+app.get('/auth/callback', (req, res) => {
+  // Forward query params to the janua-auth callback handler
+  const queryString = req.url.split('?')[1] || '';
+  res.redirect(`/api/janua-auth/callback${queryString ? '?' + queryString : ''}`);
+});
 
 // Projects API Routes (protected)
 app.use('/api/projects', authenticateToken, projectsRoutes);

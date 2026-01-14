@@ -139,8 +139,8 @@ Add these to your `.env` file:
 ```bash
 # Janua OAuth2 Configuration
 JANUA_URL=https://auth.madfam.io
-JANUA_CLIENT_ID=jnc_lSGMbQtCGdHSctd4mEQoaklLBCv7xXhe
-JANUA_CLIENT_SECRET=jns_3SRnFv5IF32bM3fkHH5bFQ3su9LlLJB3zqlvKbwIVdnqJ5paKc4u7DfMhg10ZTsc
+JANUA_CLIENT_ID=jnc_2kEE7mGL6b8T2GbA1ilHD1KR5NqKeScp
+JANUA_CLIENT_SECRET=<your-client-secret>
 JANUA_REDIRECT_URI=https://agents.madfam.io/auth/callback
 
 # Kubernetes Configuration (for agent discovery)
@@ -158,8 +158,8 @@ AGENT_API_URL=http://auto-claude-agent.madfam-automation.svc.cluster.local:8080
 
 The OAuth2 client has already been created in Janua with these credentials:
 
-**Client ID:** `jnc_lSGMbQtCGdHSctd4mEQoaklLBCv7xXhe`
-**Client Secret:** `jns_3SRnFv5IF32bM3fkHH5bFQ3su9LlLJB3zqlvKbwIVdnqJ5paKc4u7DfMhg10ZTsc`
+**Client ID:** `jnc_2kEE7mGL6b8T2GbA1ilHD1KR5NqKeScp`
+**Client Secret:** (stored in Kubernetes secret `claudecodeui-secrets`)
 **Redirect URIs:**
 - Production: `https://agents.madfam.io/auth/callback`
 - Development: `http://localhost:3001/auth/callback`
@@ -208,8 +208,8 @@ For production with Janua SSO:
 
 ```bash
 # Set Janua environment variables
-export JANUA_CLIENT_ID=jnc_lSGMbQtCGdHSctd4mEQoaklLBCv7xXhe
-export JANUA_CLIENT_SECRET=jns_3SRnFv5IF32bM3fkHH5bFQ3su9LlLJB3zqlvKbwIVdnqJ5paKc4u7DfMhg10ZTsc
+export JANUA_CLIENT_ID=jnc_2kEE7mGL6b8T2GbA1ilHD1KR5NqKeScp
+export JANUA_CLIENT_SECRET=<your-client-secret>
 export JANUA_URL=https://auth.madfam.io
 npm start
 ```
