@@ -7,10 +7,12 @@ const AuthContext = createContext({
   login: () => {},
   register: () => {},
   logout: () => {},
+  loginWithJanua: () => {},
   isLoading: true,
   needsSetup: false,
   hasCompletedOnboarding: true,
   refreshOnboardingStatus: () => {},
+  januaEnabled: false,
   error: null
 });
 
@@ -28,6 +30,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [needsSetup, setNeedsSetup] = useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(true);
+  const [januaEnabled, setJanuaEnabled] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -39,8 +42,53 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    checkAuthStatus();
+    // Check for OAuth callback params from Janua SSO
+    const urlParams = new URLSearchParams(window.location.search);
+    const oauthToken = urlParams.get('token');
+    const oauthProvider = urlParams.get('oauth');
+
+    if (oauthToken && oauthProvider === 'janua') {
+      handleOAuthCallback(oauthToken);
+    } else {
+      checkAuthStatus();
+    }
   }, []);
+
+  const handleOAuthCallback = async (oauthToken) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Store the token from OAuth callback
+      localStorage.setItem('auth-token', oauthToken);
+      setToken(oauthToken);
+
+      // Clear URL params
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      // Verify the token and get user info
+      const userResponse = await api.auth.user();
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        setUser(userData.user);
+        await checkOnboardingStatus();
+      } else {
+        // Token is invalid
+        localStorage.removeItem('auth-token');
+        setToken(null);
+        setUser(null);
+        setError('OAuth authentication failed. Please try again.');
+      }
+    } catch (err) {
+      console.error('[AuthContext] OAuth callback error:', err);
+      localStorage.removeItem('auth-token');
+      setToken(null);
+      setUser(null);
+      setError('OAuth authentication failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const checkOnboardingStatus = async () => {
     try {
@@ -72,6 +120,18 @@ export const AuthProvider = ({ children }) => {
         setNeedsSetup(true);
         setIsLoading(false);
         return;
+      }
+
+      // Check if Janua OAuth is enabled
+      try {
+        const januaStatusResponse = await api.janua.status();
+        if (januaStatusResponse.ok) {
+          const januaData = await januaStatusResponse.json();
+          setJanuaEnabled(januaData.enabled || false);
+        }
+      } catch (err) {
+        console.error('[AuthContext] Janua status check failed:', err);
+        // Janua not configured, keep disabled
       }
 
       // If we have a token, verify it
@@ -158,7 +218,7 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('auth-token');
-    
+
     // Optional: Call logout endpoint for logging
     if (token) {
       api.auth.logout().catch(error => {
@@ -167,16 +227,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithJanua = () => {
+    // Redirect to Janua OAuth login endpoint
+    window.location.href = api.janua.loginUrl;
+  };
+
   const value = {
     user,
     token,
     login,
     register,
     logout,
+    loginWithJanua,
     isLoading,
     needsSetup,
     hasCompletedOnboarding,
     refreshOnboardingStatus,
+    januaEnabled,
     error
   };
 

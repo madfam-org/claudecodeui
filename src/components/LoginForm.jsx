@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, KeyRound } from 'lucide-react';
 
 const LoginForm = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  
-  const { login } = useAuth();
+
+  const { login, loginWithJanua, januaEnabled } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -96,9 +96,37 @@ const LoginForm = () => {
             </button>
           </form>
 
+          {/* Janua SSO Login */}
+          {januaEnabled && (
+            <>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">
+                    Or continue with
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={loginWithJanua}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-md transition-all duration-200"
+              >
+                <KeyRound className="w-4 h-4" />
+                Sign in with Janua
+              </button>
+            </>
+          )}
+
           <div className="text-center">
             <p className="text-sm text-muted-foreground">
-              Enter your credentials to access Claude Code UI
+              {januaEnabled
+                ? 'Use your Janua account or local credentials'
+                : 'Enter your credentials to access Claude Code UI'}
             </p>
           </div>
         </div>

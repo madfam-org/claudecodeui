@@ -42,6 +42,14 @@ export const api = {
     logout: () => authenticatedFetch('/api/auth/logout', { method: 'POST' }),
   },
 
+  // Janua OAuth2 endpoints
+  janua: {
+    status: () => fetch('/api/janua-auth/status'),
+    // Login redirects to Janua, so we just need the URL
+    loginUrl: '/api/janua-auth/login',
+    logout: () => authenticatedFetch('/api/janua-auth/logout', { method: 'POST' }),
+  },
+
   // Protected endpoints
   // config endpoint removed - no longer needed (frontend uses window.location)
   projects: () => authenticatedFetch('/api/projects'),
