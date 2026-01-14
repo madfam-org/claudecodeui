@@ -15,13 +15,23 @@ spec:
     replicas: 1
     healthCheck: /health
   env:
-    # Janua OAuth2 Configuration
+    # Janua OAuth2 Configuration (SSO-only mode)
     - name: JANUA_URL
       value: "https://auth.madfam.io"
     - name: JANUA_CLIENT_ID
       value: "jnc_2kEE7mGL6b8T2GbA1ilHD1KR5NqKeScp"
     - name: JANUA_REDIRECT_URI
       value: "https://agents.madfam.io/auth/callback"
+    - name: JANUA_ALLOWED_EMAILS
+      value: "admin@madfam.io"  # Single-user SSO whitelist
+    # JWT Configuration (matches Janua's 8-hour window)
+    - name: JWT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: claudecodeui-secrets
+          key: jwt-secret
+    - name: JWT_EXPIRATION
+      value: "8h"
     # Application Settings
     - name: NODE_ENV
       value: "production"

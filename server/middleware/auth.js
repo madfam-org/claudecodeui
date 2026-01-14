@@ -1,8 +1,18 @@
 import jwt from 'jsonwebtoken';
 import { userDb } from '../database/db.js';
 
-// Get JWT secret from environment or use default (for development)
-const JWT_SECRET = process.env.JWT_SECRET || 'claude-ui-dev-secret-change-in-production';
+// JWT Configuration
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const JWT_EXPIRATION = process.env.JWT_EXPIRATION || '8h'; // Match Janua's 8-hour window
+
+// Get JWT secret from environment - REQUIRED in production
+const JWT_SECRET = process.env.JWT_SECRET || (NODE_ENV === 'production' ? null : 'claude-ui-dev-secret-change-in-production');
+
+// Fail fast in production if JWT_SECRET not set
+if (NODE_ENV === 'production' && !JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET must be set in production environment');
+  process.exit(1);
+}
 
 // Optional API key middleware
 const validateApiKey = (req, res, next) => {
@@ -20,8 +30,17 @@ const validateApiKey = (req, res, next) => {
 
 // JWT authentication middleware
 const authenticateToken = async (req, res, next) => {
-  // Platform mode:  use single database user
+  // Platform mode: use single database user (with safeguards)
+  // SECURITY: Platform mode should only be used in controlled environments
   if (process.env.VITE_IS_PLATFORM === 'true') {
+    // Safeguard: Require explicit opt-in for production platform mode
+    if (NODE_ENV === 'production' && process.env.ALLOW_PLATFORM_MODE !== 'true') {
+      console.warn('Platform mode attempted in production without ALLOW_PLATFORM_MODE=true');
+      return res.status(403).json({
+        error: 'Platform mode is disabled in production. Set ALLOW_PLATFORM_MODE=true to enable.'
+      });
+    }
+
     try {
       const user = userDb.getFirstUser();
       if (!user) {
@@ -60,22 +79,28 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
-// Generate JWT token (never expires)
+// Generate JWT token with expiration (matches Janua's 8-hour window)
 const generateToken = (user) => {
   return jwt.sign(
-    { 
-      userId: user.id, 
-      username: user.username 
+    {
+      userId: user.id,
+      username: user.username
     },
-    JWT_SECRET
-    // No expiration - token lasts forever
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRATION }
   );
 };
 
 // WebSocket authentication function
 const authenticateWebSocket = (token) => {
-  // Platform mode: bypass token validation, return first user
+  // Platform mode: bypass token validation, return first user (with safeguards)
   if (process.env.VITE_IS_PLATFORM === 'true') {
+    // Safeguard: Require explicit opt-in for production platform mode
+    if (NODE_ENV === 'production' && process.env.ALLOW_PLATFORM_MODE !== 'true') {
+      console.warn('WebSocket platform mode attempted in production without ALLOW_PLATFORM_MODE=true');
+      return null;
+    }
+
     try {
       const user = userDb.getFirstUser();
       if (user) {
